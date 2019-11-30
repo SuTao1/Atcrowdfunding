@@ -37,26 +37,26 @@
         ${exception.message}
         <h2 class="form-signin-heading"><i class="glyphicon glyphicon-log-in"></i> 用户注册</h2>
         <div class="form-group has-success has-feedback">
-            <input type="text" name="loginacct" class="form-control" id="inputSuccess4" placeholder="登录账号" autofocus>
+            <input type="text" name="loginacct" value="admin" class="form-control" id="floginacct" placeholder="账号" autofocus>
             <span class="glyphicon glyphicon-user form-control-feedback"></span>
         </div>
         <div class="form-group has-success has-feedback">
-            <input type="password" name="userpswd" class="form-control" id="inputSuccess4" placeholder="登录密码"
+            <input type="password" name="userpswd" value="123" class="form-control" id="fuserpswd" placeholder="密码"
                    style="margin-top:10px;">
             <span class="glyphicon glyphicon-lock form-control-feedback"></span>
         </div>
         <div class="form-group has-success has-feedback">
-            <input type="text" class="form-control" name="username" id="inputSuccess4" placeholder="用户姓名"
+            <input type="text" class="form-control" value="苏轼" name="username" id="fusername" placeholder="用户姓名"
                    style="margin-top:10px;">
             <span class="glyphicon glyphicon glyphicon-envelope form-control-feedback"></span>
         </div>
         <div class="form-group has-success has-feedback">
-            <input type="text" class="form-control" name="email" id="inputSuccess4" placeholder="邮箱地址"
+            <input type="text" class="form-control" value="999@gmail.com" name="email" id="femail" placeholder="邮箱"
                    style="margin-top:10px;">
             <span class="glyphicon glyphicon glyphicon-envelope form-control-feedback"></span>
         </div>
         <div class="form-group has-success has-feedback">
-            <select class="form-control" name="userType">
+            <select id="fuserType" class="form-control" name="userType">
                 <option value="0">企业</option>
                 <option value="1" selected>个人</option>
             </select>
@@ -77,33 +77,58 @@
 <script src="${APP_PATH}/bootstrap/js/bootstrap.min.js"></script>
 <script>
     function doregister() {
-        $("#registerForm").submit();
-    }
-    /*$("button").on('click',function () {
-        $.post("${APP_PATH}/register.do", $("form").serialize(), function (json) {
-            alert(json.message());
-        },'json')
-    });*/
-    /*$("button").on('click', function () {
+        // 同步
+        /*$("#registerForm").submit();*/
+        // 异步
         $.ajax({
-            type: 'POST',
-            url: "${APP_PATH}/register.do",
-            async: false,
-            data: {
-                'loginName': $("input[name='loginName']").val(),
-                'loginPassword': $("input[name='loginPassword']").val(),
-                'email': $("input[name='email']").val(),
-                'userType': $("select[name='userType']").val()
+            url : "${APP_PATH}/doRegister.do",
+            type : "POST",
+            data : {
+                "loginacct" : $("#floginacct").val(),
+                "userpswd" : $("#fuserpswd").val(),
+                "username" : $("#fusername").val(),
+                "email" : $("#femail").val(),
+                "userType" : $("#fuserType").val()
             },
-            dataType: "json",
-            success: function (data) {
-                console.log(data);
+            async : true,
+            beforeSend : function () {
+                console.log("预处理");
             },
-            error: function () {
-                console.log(data);
+            success : function (result) {
+                if(result.success){
+                    alert(result.message);
+                    window.location.href="${APP_PATH}/login.htm";
+                }else{
+                    alert(result.message);
+                    window.location.href="${APP_PATH}/reg.htm";
+                }
+            },
+            error : function (exception) {
+                console.log(exception.message);
             }
         })
-    });*/
+    }
+    // 登录名文本框鼠标失去焦点触发事件
+    $("#floginacct").blur(function () {
+        $.ajax({
+            url : "${APP_PATH}/loginacctVerification.do",
+            data : {
+                "loginacct" : $("#floginacct").val()
+            },
+            type : "GET",
+            beforeSend : function () {
+                console.log("预处理");
+            },
+            success : function (result) {
+                alert(result.message);
+            },
+            error : function (exception) {
+                alert(exception.message);
+            }
+        })
+    })
+
+
 </script>
 </body>
 </html>

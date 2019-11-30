@@ -37,15 +37,15 @@
         <h2>${exception.message}<h2>
         <h2 class="form-signin-heading"><i class="glyphicon glyphicon-log-in"></i> 用户登录</h2>
         <div class="form-group has-success has-feedback">
-            <input type="text" name="loginacct" class="form-control" value="admin" id="inputSuccess4" placeholder="请输入登录账号" autofocus>
+            <input type="text" name="loginacct" class="form-control" value="admin" id="floginacct" placeholder="请输入登录账号" autofocus>
             <span class="glyphicon glyphicon-user form-control-feedback"></span>
         </div>
         <div class="form-group has-success has-feedback">
-            <input type="text" name="loginpswd" class="form-control" value="123" id="inputSuccess4" placeholder="请输入登录密码" style="margin-top:10px;">
+            <input type="password" name="loginpswd" class="form-control" value="123" id="floginpswd" placeholder="请输入登录密码" style="margin-top:10px;">
             <span class="glyphicon glyphicon-lock form-control-feedback"></span>
         </div>
         <div class="form-group has-success has-feedback">
-            <select class="form-control" name="loginType">
+            <select id="floginType" class="form-control" name="loginType">
                 <option value="member">会员</option>
                 <option value="user" selected>管理</option>
             </select>
@@ -69,13 +69,36 @@
 <script src=${APP_PATH}/"bootstrap/js/bootstrap.min.js"></script>
 <script>
     function dologin() {
-        $("#loginForm").submit();
-        /*var type = $(":selected").val();
-        if ( type == "user" ) {
-            window.location.href = "${APP_PATH}/main.htm";
-        } else {
-            window.location.href = "${APP_PATH}/index.htm";
-        }*/
+        /*同步请求，提交表单*/
+        //$("#loginForm").submit();
+
+        /*异步请求，ajax封装*/
+        $.ajax({
+            url : "${APP_PATH}/doLogin.do",
+            type : "POST",
+            //timeout : 10000,
+            async : true,
+            data : {
+                "loginacct" : $("#floginacct").val(),
+                "loginpswd" : $("#floginpswd").val(),
+                "loginType" : $("#floginType").val()
+            },
+            // 发出请求前的判断，可以对表单的
+            beforeSend : function(){
+                console.log("还可以对表单进行操作");
+            },
+            success : function(result){
+                if(result.success){
+                    alert(result.message);
+                    window.location.href = "${APP_PATH}/main.htm";
+                }else{
+                    alert(result.message);
+                }
+            },
+            error : function(){
+                alert("失败");
+            }
+        });
     }
 </script>
 </body>
