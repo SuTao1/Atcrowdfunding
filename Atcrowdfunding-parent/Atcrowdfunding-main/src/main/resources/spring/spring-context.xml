@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+	<!--配置扫描路径-->
+	<context:component-scan base-package="com.sutao.atcrowdfunding.*">
+		<!--黑名单：context:exclude-filter。忽略对controller的扫描-->
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+	</context:component-scan>
+
+	<!-- 加载外部属性配置文件
+	 	加载配置文件 properties
+	 -->
+	<bean id="propertyPlaceholderConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations" value="classpath:jdbc.properties" />
+	</bean>
+	
+	<!-- 配置C3P0数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<!--获取配置文件中的值-->
+		<property name="driverClass" value="${jdbc.driver}"/>
+		<property name="jdbcUrl" value="${jdbc.url}"/>
+		<property name="user" value="${jdbc.user}"/>
+		<property name="password" value="${jdbc.password}"/>
+	</bean>
+
+	<!--创建数据库会话对象的bean，配置文件中-->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!--读取mybatis的配置-->
+	    <property name="configLocation" value="classpath:mybatis/mybatis-config.xml"></property>
+	    <property name="dataSource" ref="dataSource"></property>
+		<!--读取mapper的xml映射文件，集合-->
+	    <property name="mapperLocations">
+	        <list>
+	            <value>classpath*:mybatis/*Mapper.xml</value>
+	        </list>
+	    </property>
+	</bean>
+	
+	<!-- 扫描Mapper映射配置 -->
+	<bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!--<property name="basePackage" value="com.sutao.atcrowdfunding.manager.dao,com.sutao.atcrowdfunding.potal.dao"/>-->
+		<!--模糊通配，dao结尾的包都会去扫描映射-->
+		<property name="basePackage" value="com.sutao.atcrowdfunding.*.mapper"/>
+	</bean>
+
+	<!-- 配置数据库的事务管理器的bean -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!--配置事务形态，切面-->
+	<tx:advice id="transactionAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!--所有方法都REQUIRED，事务执行。rollback-for。只要是抛异常了就回滚-->
+			<tx:method name="*" propagation="REQUIRED" isolation="DEFAULT" rollback-for="java.lang.Exception"/>
+			<!--查询方法不使用事务-->
+			<tx:method name="select*" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+
+	<!--事务的切入点-->
+	<aop:config>
+		<aop:advisor advice-ref="transactionAdvice" pointcut="execution(* com.sutao.atcrowdfunding..*ServiceApi.*(..))"/>
+	</aop:config>
+
+</beans>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+
+    <!-- 启用注解功能 -->
+    <context:annotation-config />
+    <!--配置注解扫描路径，配置：use-default-filters="false"表示不扫描@Service和@Reposity注解
+   context:include-filter设置白名单，只需要扫描controller中的注解
+       如果不忽略对service的扫描，那么mvc容器会再次对spring容器的生成，导致事务消失
+   -->
+    <context:component-scan base-package="com.sutao.*" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+    
+    <!-- 字符串字符编码转换 -->
+    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" >
+        <property name="messageConverters">   
+	         <list>
+	             <bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">   
+	                <property name="supportedMediaTypes">
+	                      <list>
+	                          <value>application/json;charset=UTF-8</value>
+	                     </list>   
+	                </property>   
+	             </bean>   
+	         </list>   
+	    </property>
+    </bean>
+
+    <!--配置视图解析器、配置前后缀-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+        <property name="prefix" value="/WEB-INF/jsp/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+
+    <!--异常解析器，发生异常将跳转到异常页面-->
+    <bean id="exceptionResolver"  
+        class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">  
+        <!--异常解析器捕获到异常后，会将异常对象存放到request域中，对象的默认名为exception-->
+        <property name="exceptionAttribute" value="exception" />
+        <property name="exceptionMappings">
+            <props>
+                <!--设置跳转的地址-->
+                <prop key="java.lang.Exception">error/error</prop>
+                <prop key="com.sutao.atcrowdfunding.utils.LoginFailException">login</prop>
+                <prop key="com.sutao.atcrowdfunding.utils.RegisterFailException">reg</prop>
+            </props>  
+        </property>  
+    </bean>
+
+    <!--文件上传的设置-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" p:defaultEncoding="UTF-8">
+        <property name="maxUploadSize" value="2097152"/>
+        <property name="resolveLazily" value="true"/>
+    </bean>
+</beans>

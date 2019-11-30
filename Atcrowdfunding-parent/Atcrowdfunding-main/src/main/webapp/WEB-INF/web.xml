@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         version="2.5">
+    <display-name>Atcrowdfunding</display-name>
+
+
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath*:spring/spring-*.xml</param-value>
+    </context-param>
+
+    <!-- 监听器
+        作用：创建spring的IOC容器
+        IOC容器对象存放到application（四大作用域）中
+        ApplicationContext ioc = WebApplicationContextUtils.getWebApplicationContext(application);
+        ServletContextListener监听器接口。
+        监听ServletContext的创建和销毁
+        监听到ServletContext创建（application，服务器启动）。就会创建IOC容器
+        监听到ServletContext销毁（application，服务器关机），就会销毁IOC容器
+    -->
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+    
+    <listener>
+        <listener-class>com.sutao.atcrowdfunding.listener.StartSystemListener</listener-class>
+    </listener>
+
+
+    <!-- 字符编码过滤器
+        这个配置只会对‘post’请求进行乱码过滤，不会对get请求过滤。
+        get请求可以在tomcat/conf/server.xml。修改它的编码格式URIEncoding="UTF-8"
+        <Connector URIEncoding="UTF-8" port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+    -->
+    <filter>
+        <filter-name>encoding</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>UTF-8</param-value>
+        </init-param>
+        <init-param>
+            <param-name>forceEncoding</param-name>
+            <param-value>true</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>encoding</filter-name>
+        <url-pattern>/*</url-pattern>
+        <!--一个servlet转发/重定向到另外一个servlet在字符过滤器中默认是不过滤的。设置了这两个后就可以进行过滤了-->
+        <!--<dispatcher>FORWARD</dispatcher>
+        <dispatcher>REQUEST</dispatcher>-->
+    </filter-mapping>
+
+
+    <filter>
+        <filter-name>HiddenHttpMethodFilter</filter-name>
+        <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>HiddenHttpMethodFilter</filter-name>
+        <servlet-name>springmvc</servlet-name>
+    </filter-mapping>
+    <!--DispatcherServlet前端控制器默认是在站点第一次被访问时才创建servlet的。但是这么做的话太慢了。
+    这个过滤器就是使站点一启动就创建一个servlet并执行。-->
+    <servlet>
+        <servlet-name>springmvc</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:spring/springmvc-context.xml</param-value>
+        </init-param>
+        <!--这个是配置优先级，数字越小越优先所以这个servlet会在站点启动时就加载配置-->
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>springmvc</servlet-name>
+        <!--设置扩展匹配规则-->
+        <url-pattern>*.htm</url-pattern> <!--用于页面跳转-->
+        <url-pattern>*.do</url-pattern> <!--用于处理逻辑-->
+        <!--有四种匹配规则-->
+        <!--1.精确匹配
+        <url-pattern>/user/app/</url-pattern>-->
+        <!--2.路径匹配
+        <url-pattern>/user/*</url-pattern>
+        <url-pattern>/*</url-pattern>-->
+        <!--3.扩展匹配
+        <url-pattern>*.doo</url-pattern>-->
+        <!--4.默认的匹配
+        <url-pattern>/</url-pattern>-->
+    </servlet-mapping>
+
+    <!-- 会话超时时间
+       默认是30分钟，这里就设置成了60分钟了
+    -->
+    <session-config>
+        <session-timeout>60</session-timeout>
+    </session-config>
+
+    <!--设置首页-->
+    <welcome-file-list>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+
+</web-app>
